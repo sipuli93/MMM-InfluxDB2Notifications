@@ -1,11 +1,12 @@
 /* Magic Mirror
- * Node Helper: MMM-HomeAutomationNotifications
+ * Node Helper: MMM-InfluxDB2Notifications
  *
- * By Brian Johnson
+ * By Simo-Pekka Taurama
  * MIT Licensed
  */
 
 const NodeHelper = require("node_helper");
+const express = require('express');
 
 module.exports = NodeHelper.create({
 	idPromise: null,
@@ -15,62 +16,28 @@ module.exports = NodeHelper.create({
 
 		self.sendSocketNotification("CONNECTED");
 
-		if (notification === "HOME_AUTOMATION_NOTIFICATION_ID") {
+		if (notification === "INFLUXDB2_NOTIFICATION_ID") {
 			self.idPromise(payload);
 		}
 	},
 
 	start: function() {
 		var self = this;
-
-		var types = ["INFO", "WARNING", "ERROR"];
-		self.expressApp.post("/MMM-HomeAutomationNotifications", (req, res) => {
-			if (!req.query.type) {
-				res.status(400).json({ error: "Query parameter type is required!" });
-			} else if (!types.includes(req.query.type)) {
-				res.status(400).json({ error: "Query parameter type value is invalid!" });
-			} else if (!req.query.message) {
-				res.status(400).json({ error: "Query parameter message is required!" });
+		self.expressApp.use(express.json());
+		var types = ["OK","INFO", "WARN", "CRIT"];
+		self.expressApp.post("/MMM-InfluxDB2Notifications", (req, res) => {
+			if (req.headers['content-type'] != "application/json") {
+				res.status(400).json({ error: "'content-type' must be 'application/json'" });
 			} else {
 				new Promise((resolve, reject) => {
 					self.idPromise = resolve;
-					self.sendSocketNotification("HOME_AUTOMATION_NOTIFICATION", {
-						type: req.query.type,
-						message: req.query.message
+					self.sendSocketNotification("INFLUXDB2_NOTIFICATION", {
+						type: req.body['_level'],
+						message: req.body['_message']
 					});
 				}).then((id) => {
-					res.status(201).json({ id: id });
+					res.status(200).json({ id: id });
 				});
-			}
-		});
-
-		self.expressApp.put("/MMM-HomeAutomationNotifications", (req, res) => {
-			if (!req.query.id) {
-				res.status(400).json({ error: "Query parameter id is required!" });
-			} else if (!req.query.type) {
-				res.status(400).json({ error: "Query parameter type is required!" });
-			} else if (!types.includes(req.query.type)) {
-				res.status(400).json({ error: "Query parameter type value is invalid!" });
-			} else if (!req.query.message) {
-				res.status(400).json({ error: "Query parameter message is required!" });
-			} else {
-				self.sendSocketNotification("HOME_AUTOMATION_NOTIFICATION_UPDATE", {
-					id: req.query.id,
-					type: req.query.type,
-					message: req.query.message
-				});
-				res.status(204).end();
-			}
-		});
-
-		self.expressApp.delete("/MMM-HomeAutomationNotifications", (req, res) => {
-			if (!req.query.id) {
-				res.status(400).json({ error: "Query parameter id is required!" });
-			} else {
-				self.sendSocketNotification("HOME_AUTOMATION_NOTIFICATION_DELETE", {
-					id: req.query.id
-				});
-				res.status(204).end();
 			}
 		});
 	}

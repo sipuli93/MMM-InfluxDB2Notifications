@@ -1,11 +1,11 @@
 /* Magic Mirror
- * Module: MMM-HomeAutomationNotifications
- * 
- * By Brian Johnson
+ * Module: MMM-InfluxDB2Notifications
+ *
+ * By Simo-Pekka Taurama
  * MIT Licensed
  */
 
-Module.register("MMM-HomeAutomationNotifications", {
+Module.register("MMM-InfluxDB2Notifications", {
 
 	requiresVersion: "2.12.0",
 
@@ -17,14 +17,16 @@ Module.register("MMM-HomeAutomationNotifications", {
 		duration: 30,
 		animationSpeed: 2500,
 		types: {
-			INFO: "dimmed",
-			WARNING: "normal",
-			ERROR: "bright"
+			ok: "dimmed",
+			info: "dimmed",
+			warn: "normal",
+			crit: "bright"
 		},
 		icons: {
-			INFO: "info",
-			WARNING: "exclamation",
-			ERROR: "exclamation-triangle"
+			ok: "info",
+			info: "info",
+			warn: "exclamation",
+			crit: "exclamation-triangle"
 		}
 	},
 
@@ -52,7 +54,7 @@ Module.register("MMM-HomeAutomationNotifications", {
 		var timestamp = moment();
 		var duration = moment.duration(this.config.duration, "m");
 
-		if (notification === "HOME_AUTOMATION_NOTIFICATION") {
+		if (notification === "INFLUXDB2_NOTIFICATION") {
 			var id = self.generateId();
 
 			self.notifications.push({
@@ -61,28 +63,13 @@ Module.register("MMM-HomeAutomationNotifications", {
 				message: payload.message,
 				timestamp: timestamp.toISOString(),
 				expiration: timestamp.add(duration).toISOString()
-			});		
-	
+			});
+
 			while (self.notifications.length > self.config.max) {
 				self.notifications.shift();
 			}
 
-			self.sendSocketNotification("HOME_AUTOMATION_NOTIFICATION_ID", id);
-		} else if (notification === "HOME_AUTOMATION_NOTIFICATION_UPDATE") {
-			var i = self.notifications.findIndex(x => x.id === payload.id);
-			self.notifications[i] = {
-				id: payload.id,
-				type: payload.type,
-				message: payload.message,
-				timestamp: timestamp.toISOString(),
-				expiration: timestamp.add(duration).toISOString()
-			};
-		} else if (notification === "HOME_AUTOMATION_NOTIFICATION_DELETE") {
-			for (i = self.notifications.length - 1; i >= 0; i--) {
-				if (self.notifications[i].id == payload.id) {
-					self.notifications.splice(i, 1);
-				}
-			}
+			self.sendSocketNotification("INFLUXDB2_NOTIFICATION_ID", id);
 		}
 
 		self.updateDom(self.config.animationSpeed);
