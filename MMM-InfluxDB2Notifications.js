@@ -23,9 +23,9 @@ Module.register("MMM-InfluxDB2Notifications", {
 			crit: "bright"
 		},
 		icons: {
-			ok: "info",
+			ok: "check",
 			info: "info",
-			warn: "exclamation",
+			warn: "exclamation-circle",
 			crit: "exclamation-triangle"
 		}
 	},
