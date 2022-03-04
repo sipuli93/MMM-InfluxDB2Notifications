@@ -1,10 +1,8 @@
-# MMM-HomeAutomationNotifications
+# MMM-InfluxDB2Notifications
 
-A [MagicMirror²](https://github.com/MichMich/MagicMirror) module to display home automation notifications. Notifications are sent to the module using a simple HTTP POST call.
+A [MagicMirror²](https://github.com/MichMich/MagicMirror) module to display [InfluxDB v2](https://docs.influxdata.com/influxdb) alert notifications. Notifications are sent to the module using a simple HTTP POST call.
 
-Based on the [MMM-syslog](https://github.com/paviro/MMM-syslog) module by Paul-Vincent Roll (paviro).
-
-This module is the counterpart to my [Hubitat Elevation](https://hubitat.com) notification driver named [HTTP Notifications](https://github.com/john3300/Hubitat-HTTPNotifications) for sending notifications. However the implementation is not specific to Hubitat and can be used for any kind of notification.
+Modified from [MMM-HomeAutomationNotifications](https://github.com/john3300/MMM-HomeAutomationNotifications).
 
 ## Screenshots
 
@@ -12,7 +10,7 @@ This module is the counterpart to my [Hubitat Elevation](https://hubitat.com) no
 
 ## Installation
 
-1. Navigate into your `MagicMirror/modules` directory and execute `git clone https://github.com/john3300/MMM-HomeAutomationNotifications.git`
+1. Navigate into your `MagicMirror/modules` directory and execute `git clone https://github.com/sipuli93/MMM-InfluxDB2Notifications.git`
 
 ## Using the module
 
@@ -20,7 +18,7 @@ To use this module, add it to the modules array in the `config/config.js` file:
 ``` js
 modules: [
     {
-        module: "MMM-HomeAutomationNotifications",
+        module: "MMM-InfluxDB2Notifications",
         position: "bottom_bar",	// This can be any of the regions.
         config: {
             // The config property is optional.
@@ -30,28 +28,19 @@ modules: [
 ]
 ```
 
-You will also need to ensure that your global configuration entry for `address` is set to listen on the correct interface. The `ipWhiteList` should also contain the IP address of your home automation server that will be sending the requests. Without both of these items MagicMirror will refuse the requests.
+You will also need to ensure that your global configuration entry for `address` is set to listen on the correct interface. The `ipWhiteList` should also contain the IP address of your InfluxDB server that will be sending the requests. Without both of these items MagicMirror will refuse the requests.
 
-Notifications can be sent to the module with an HTTP POST request to this URL:
-`POST http://<SERVER-ADDRESS>:<PORT>/MMM-HomeAutomationNotifications?type=<TYPE>&message=<MESSAGE>`
+Notification endpoint for InfluxDB v2:
+`http://<SERVER-ADDRESS>:<PORT>/MMM-InfluxDB2Notifications`
 
-`type` has three possible values:
-- INFO
-- WARNING
-- ERROR
+Module uses alerts `_level` field value for notification type: ok, warn, crit. Font and icon for these are editable.
 
-`message` must be URL encoded if it contains any special characters such as a space.
+Module uses alerts `_message` field value for the message.
 
-Example request:
-`POST http://magicmirror:8080/MMM-HomeAutomationNotifications?type=WARNING&message=Front%20door%20unlocked`
+More about setting up InfluxDB v2 alerts can be found from [InfluxDB Docs](https://docs.influxdata.com/influxdb/v2.1/monitor-alert/).
 
-The server will respond to the request with an ID value for the notification that was created. This value can be used in subsequent requests to update or delete the notification.
-
-A notification can be updated with an HTTP PUT request to this URL:
-`PUT http://<SERVER-ADDRESS>:<PORT>/MMM-HomeAutomationNotifications?id=<ID>&type=<TYPE>&message=<MESSAGE>`
-
-A notificaiton can be deleted with an HTTP DELETE request to this URL:
-`DELETE http://<SERVER-ADDRESS>:<PORT>/MMM-HomeAutomationNotifications?id=<ID>`
+The server can be tested with example POST request:
+`curl --header "Content-Type: application/json" --request POST --data '{"_level":"warn","_message":"This is test warning!"}' http://<SERVER-ADDRESS>:<PORT>/MMM-InfluxDB2Notifications`
 
 ## Configuration options
 
