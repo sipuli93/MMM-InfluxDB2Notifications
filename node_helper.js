@@ -24,10 +24,13 @@ module.exports = NodeHelper.create({
 	start: function() {
 		var self = this;
 		self.expressApp.use(express.json());
-		var types = ["OK","INFO", "WARN", "CRIT"];
 		self.expressApp.post("/MMM-InfluxDB2Notifications", (req, res) => {
 			if (req.headers['content-type'] != "application/json") {
 				res.status(400).json({ error: "'content-type' must be 'application/json'" });
+			} else if (!req.body['_level']){
+				res.status(400).json({ error: "Request body must have '_level'" });
+			} else if (!req.body['_message']){
+				res.status(400).json({ error: "Request body must have '_message'" });
 			} else {
 				new Promise((resolve, reject) => {
 					self.idPromise = resolve;
